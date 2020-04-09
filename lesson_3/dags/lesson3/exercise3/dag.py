@@ -30,8 +30,8 @@ trips_subdag_task = SubDagOperator(
         "aws_credentials",
         "trips",
         sql_statements.CREATE_TRIPS_TABLE_SQL,
-        s3_bucket="udac-data-pipelines",
-        s3_key="divvy/unpartitioned/divvy_trips_2018.csv",
+        s3_bucket="udacity-dend",
+        s3_key="data-pipelines/divvy/unpartitioned/divvy_trips_2018.csv",
         start_date=start_date,
     ),
     task_id=trips_task_id,
@@ -47,8 +47,8 @@ stations_subdag_task = SubDagOperator(
         "aws_credentials",
         "stations",
         sql_statements.CREATE_STATIONS_TABLE_SQL,
-        s3_bucket="udac-data-pipelines",
-        s3_key="divvy/unpartitioned/divvy_stations_2017.csv",
+        s3_bucket="udacity-dend",
+        s3_key="data-pipelines/divvy/unpartitioned/divvy_stations_2017.csv",
         start_date=start_date,
     ),
     task_id=stations_task_id,
@@ -59,19 +59,6 @@ stations_subdag_task = SubDagOperator(
 # TODO: Consolidate check_trips and check_stations into a single check in the subdag
 #       as we did with the create and copy in the demo
 #
-check_trips = HasRowsOperator(
-    task_id="check_trips_data",
-    dag=dag,
-    redshift_conn_id="redshift",
-    table="trips"
-)
-
-check_stations = HasRowsOperator(
-    task_id="check_stations_data",
-    dag=dag,
-    redshift_conn_id="redshift",
-    table="stations"
-)
 
 location_traffic_task = PostgresOperator(
     task_id="calculate_location_traffic",
@@ -83,7 +70,5 @@ location_traffic_task = PostgresOperator(
 #
 # TODO: Reorder the Graph once you have moved the checks
 #
-trips_subdag_task >> check_trips
-stations_subdag_task >> check_stations
-check_stations >> location_traffic_task
-check_trips >> location_traffic_task
+trips_subdag_task >> location_traffic_task
+stations_subdag_task >> location_traffic_task
